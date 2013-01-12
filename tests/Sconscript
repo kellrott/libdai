@@ -1,0 +1,50 @@
+Import("env")
+import os
+import subprocess
+
+testdai_exe = env.Program('testdai', ['testdai.cpp', Dir("#").abspath + '/libdai.a'], LIBS=['gmpxx', 'gmp', 'boost_program_options-mt'])
+# testbpp_exe = env.Program('testbpp', ['testbbp.cpp', '../libdai.a'], LIBS=['gmpxx', 'gmp', 'boost_program_options'])
+
+test_alias = Alias('test', [testdai_exe]) #, program[0].path)
+
+def runUnitTest(env,target,source):
+	app = str(source[0].abspath)
+	if not subprocess.call(app):
+		#open(str(target[0]),'w').write("PASSED\n")
+		pass
+	else:
+		raise Exception("Test Failed")
+
+unit_tests = [
+"unit/alldai_test.cpp",
+"unit/daialg_test.cpp",
+"unit/factorgraph_test.cpp",
+"unit/properties_test.cpp",
+"unit/var_test.cpp",
+"unit/bipgraph_test.cpp",
+"unit/enum_test.cpp",
+"unit/graph_test.cpp",
+"unit/regiongraph_test.cpp",
+"unit/varset_test.cpp",
+"unit/clustergraph_test.cpp",
+"unit/exceptions_test.cpp",
+"unit/index_test.cpp",
+"unit/smallset_test.cpp",
+"unit/weightedgraph_test.cpp",
+"unit/dag_test.cpp",
+"unit/factor_test.cpp",
+"unit/prob_test.cpp",
+"unit/util_test.cpp"
+]
+
+
+for a in unit_tests:
+	name = os.path.basename(a).replace(".cpp", "")
+	program = env.Program(name, [a, Dir("#").abspath + '/libdai.a'], CCFLAGS="-DBOOST_TEST_DYN_LINK", LIBS=['gmpxx', 'gmp', 'boost_program_options-mt', 'boost_unit_test_framework-mt'])
+	Command( name + ".test", name, runUnitTest)
+
+Command( "testregression.test", "testregression", runUnitTest)
+
+program = env.Program("testem/testem", ["testem/testem.cpp", Dir("#").abspath + '/libdai.a'], CCFLAGS="-DBOOST_TEST_DYN_LINK", LIBS=['gmpxx', 'gmp', 'boost_program_options-mt', 'boost_unit_test_framework-mt'])
+
+Command( "testem/runtests.test", "testem/runtests", runUnitTest)

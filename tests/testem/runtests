@@ -1,6 +1,7 @@
 #!/bin/bash
 TMPFILE1=`mktemp /var/tmp/testem.XXXXXX`
 trap 'rm -f $TMPFILE1' 0 1 15
+cd `dirname $0`
 
 ./testem 2var.fg 2var_data.tab 2var.em > $TMPFILE1
 ./testem 3var.fg 2var_data.tab 3var.em >> $TMPFILE1
