@@ -89,4 +89,7 @@ if GetOption('test'):
 	env.Alias("test", SConscript('tests/Sconscript'))
 env.Alias("all", [shared_lib, static_lib])
 env.Alias("install", env.Install(os.path.join(PREFIX, "lib"), [shared_lib, static_lib]))
-env.Alias("install", env.Install(os.path.join(PREFIX, "include"), "include/dai"))
+
+header_files = Glob('include/dai/*.h')
+
+env.Alias("install", env.Install(os.path.join(PREFIX, "include", "dai"), header_files))
