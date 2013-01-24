@@ -47,4 +47,4 @@ Command( "testregression.test", "testregression", runUnitTest)
 
 program = env.Program("testem/testem", ["testem/testem.cpp", Dir("#").abspath + '/libdai.a'], CCFLAGS="-DBOOST_TEST_DYN_LINK", LIBS=['gmpxx', 'gmp', 'boost_program_options-mt', 'boost_unit_test_framework-mt'])
 
-Command( "testem/runtests.test", "testem/runtests", runUnitTest)
+Command( "testem/runtests.test", ["testem/runtests", program], runUnitTest)
