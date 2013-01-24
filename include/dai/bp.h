@@ -81,8 +81,6 @@ class BP : public DAIAlgFG {
         LutType _lut;
         /// Maximum difference between variable beliefs encountered so far
         Real _maxdiff;
-        /// Number of iterations needed
-        size_t _iters;
         /// The history of message updates (only recorded if \a recordSentMessages is \c true)
         std::vector<std::pair<size_t, size_t> > _sentMessages;
         /// Stores variable beliefs of previous iteration
@@ -138,6 +136,8 @@ class BP : public DAIAlgFG {
 
         /// Specifies whether the history of message updates should be recorded
         bool recordSentMessages;
+        /// Number of iterations needed
+        size_t _iters;
 
     public:
     /// \name Constructors/destructors
