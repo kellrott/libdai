@@ -183,49 +183,61 @@ typedef std::vector<VecFactor> VecVecFactor;
 // ************************************************************************************************
 %include "../include/dai/daialg.h"
 //TODO: why do the following lines not work?
-//%template(DAIAlgFG) dai::DAIAlg<dai::FactorGraph>;
-//%template(DAIAlgRG) dai::DAIAlg<dai::RegionGraph>;
-//%template(DAIAlgCG) dai::DAIAlg<dai::CobwebGraph>;
+%template(DAIAlgFG) dai::DAIAlg<dai::FactorGraph>;
+%template(DAIAlgRG) dai::DAIAlg<dai::RegionGraph>;
+%template(DAIAlgCG) dai::DAIAlg<dai::CobwebGraph>;
 
 // ************************************************************************************************
 %include "../include/dai/alldai.h"
 
 // ************************************************************************************************
 %ignore dai::BP::operator=;
+%feature("notabstract") dai::BP; //SWIG mis-identifies the InfAlg classes as being virtual...
 %include "../include/dai/bp.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::FBP;
 %include "../include/dai/fbp.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::TRWBP;
 %include "../include/dai/trwbp.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::MF;
 %include "../include/dai/mf.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::HAK;
 %include "../include/dai/hak.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::LC;
 %include "../include/dai/lc.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::JTree;
 %include "../include/dai/jtree.h"
 
 // ************************************************************************************************
 %ignore dai::TreeEP::operator=;
+%feature("notabstract") dai::TreeEP;
 %include "../include/dai/treeep.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::MR;
 %include "../include/dai/mr.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::Gibbs;
 %include "../include/dai/gibbs.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::CBP;
 %include "../include/dai/cbp.h"
 
 // ************************************************************************************************
+%feature("notabstract") dai::DecMAP;
 %include "../include/dai/decmap.h"
 
 // ************************************************************************************************
