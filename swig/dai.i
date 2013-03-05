@@ -242,3 +242,7 @@ typedef std::vector<VecFactor> VecVecFactor;
 
 // ************************************************************************************************
 %include "../include/dai/glc.h"
+
+// ************************************************************************************************
+%include "../include/dai/emalg.h"
+%include "../include/dai/evidence.h"
