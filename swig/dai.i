@@ -10,6 +10,7 @@
 
 %include "std_string.i"
 %include "std_vector.i"
+%include "std_map.i"
 %template(IntVector) std::vector<size_t>;
 //%include "std_set.i"  /* for python */
 
@@ -244,5 +245,24 @@ typedef std::vector<VecFactor> VecVecFactor;
 %include "../include/dai/glc.h"
 
 // ************************************************************************************************
-%include "../include/dai/emalg.h"
 %include "../include/dai/evidence.h"
+%include "../include/dai/emalg.h"
+
+%inline %{
+typedef std::map<dai::Var, size_t> Observation;
+typedef std::vector<Observation> ObservationVec;
+
+typedef std::vector<dai::Var> VecVar;
+typedef std::map<size_t, VecVar > FactorOrientations;
+
+typedef std::vector<dai::SharedParameters> VecSharedParameters;
+
+typedef std::vector<dai::MaximizationStep> VecMaximizationStep;
+
+%}
+%template(Observation) std::map<dai::Var, size_t>;
+%template(ObservationVec) std::vector<Observation>;
+%template(VecVar) std::vector<dai::Var>;
+%template(FactorOrientations) std::map<size_t,VecVar>; 
+%template(VecSharedParameters) std::vector<dai::SharedParameters >;
+%template(VecMaximizationStep) std::vector<dai::MaximizationStep >;
