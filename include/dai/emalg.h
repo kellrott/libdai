@@ -212,6 +212,8 @@ class SharedParameters {
         void setPermsAndVarSetsFromVarOrders();
 
     public:
+        SharedParameters() { }
+    
         /// Constructor
         /** \param varorders  all the factor orientations for this parameter
          *  \param estimation a pointer to the parameter estimation method
