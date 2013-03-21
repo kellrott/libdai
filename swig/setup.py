@@ -17,6 +17,7 @@ setup(
 			sources=["dai.i"], 
 			libraries=["dai"], 
             library_dirs=[os.path.join(LIBDAI_PATH, 'lib')],
+            runtime_library_dirs=[os.path.join(LIBDAI_PATH, 'lib')],
             swig_opts=['-c++', '-I%s' % os.path.join(LIBDAI_PATH, 'include')], 
             include_dirs=[os.path.join(LIBDAI_PATH, 'include')]
         )
