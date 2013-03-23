@@ -266,3 +266,29 @@ typedef std::vector<dai::MaximizationStep> VecMaximizationStep;
 %template(FactorOrientations) std::map<size_t,VecVar>; 
 %template(VecSharedParameters) std::vector<dai::SharedParameters >;
 %template(VecMaximizationStep) std::vector<dai::MaximizationStep >;
+
+
+%extend dai::EMAlg {
+%insert("python") %{
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
+%}
+    inline const dai::MaximizationStep __getitem__(int i) const {
+        return (*self).get(i);
+    }
+    inline const size_t __len__() const {return (*self).count();}
+}
+
+
+%extend dai::MaximizationStep {
+%insert("python") %{
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
+%}
+    inline const dai::SharedParameters __getitem__(int i) const {
+        return (*self).get(i);
+    }
+    inline const size_t __len__() const {return (*self).count();}
+}

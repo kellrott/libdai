@@ -212,8 +212,26 @@ class SharedParameters {
         void setPermsAndVarSetsFromVarOrders();
 
     public:
-        SharedParameters() { }
-    
+        
+        SharedParameters() {
+            _ownEstimation = false;
+            _expectations = NULL;
+            _estimation = NULL;
+        }
+        
+
+        SharedParameters& operator=( const SharedParameters& rhs ) {
+            this->_varsets = rhs._varsets;
+            this->_perms = rhs._perms;
+            this->_varorders = rhs._varorders;
+            this->_estimation = rhs._estimation;
+            this->_ownEstimation = rhs._ownEstimation;            
+            if( _ownEstimation )
+                this->_estimation = _estimation->clone();
+            this->_expectations = new Prob(*rhs._expectations);
+            return *this;
+        }
+
         /// Constructor
         /** \param varorders  all the factor orientations for this parameter
          *  \param estimation a pointer to the parameter estimation method
@@ -306,6 +324,9 @@ class MaximizationStep {
         
         /// Clear the step, to be called at the begining of each step
         void clear( );
+
+        const size_t count() const {return _params.size(); }
+        const SharedParameters get(int i) const { return _params[i]; }
 
     /// \name Iterator interface
     //@{
@@ -431,6 +452,9 @@ class EMAlg {
 
         /// Iterate until termination conditions are satisfied
         void run();
+
+        const size_t count() const {return _msteps.size(); }
+        const MaximizationStep get(int i) const { return _msteps[i]; }
 
     /// \name Iterator interface
     //@{
