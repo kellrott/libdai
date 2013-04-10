@@ -15,6 +15,9 @@
 #include <dai/util.h>
 #include <dai/properties.h>
 
+#ifdef THREADED
+#include <pthread.h>
+#endif
 
 namespace dai {
 
@@ -55,6 +58,12 @@ void BP::setProperties( const PropertySet &opts ) {
         props.inference = opts.getStringAs<Properties::InfType>("inference");
     else
         props.inference = Properties::InfType::SUMPROD;
+
+    if( opts.hasKey("nthread") )
+        props.threadcount = opts.getStringAs<size_t>("nthread");
+    else
+        props.threadcount = 1;
+
 }
 
 
@@ -68,6 +77,7 @@ PropertySet BP::getProperties() const {
     opts.set( "updates", props.updates );
     opts.set( "damping", props.damping );
     opts.set( "inference", props.inference );
+    opts.set( "nthread", props.threadcount );
     return opts;
 }
 
@@ -82,6 +92,7 @@ string BP::printProperties() const {
     s << "logdomain=" << props.logdomain << ",";
     s << "updates=" << props.updates << ",";
     s << "damping=" << props.damping << ",";
+    s << "nthread=" << props.threadcount << ",";
     s << "inference=" << props.inference << "]";
     return s.str();
 }
@@ -256,6 +267,41 @@ void BP::calcNewMessage( size_t i, size_t _I ) {
 }
 
 
+typedef struct worker_info {
+    BP *bp_owner;
+    pthread_t thread;
+    bool quit;
+    bool work_calc_message;
+    int work_start, work_step;
+    pthread_mutex_t work_mutex, result_mutex;    
+};
+
+
+void *bp_work_thread(void *worker_info_ptr) {
+   worker_info *wi;
+   wi = (worker_info *)worker_info_ptr;
+   
+   while (!wi->quit) {
+    pthread_mutex_lock(&wi->work_mutex);
+    if (!wi->quit) {
+        if (wi->work_calc_message) {
+            for( size_t i = wi->work_start; i < wi->bp_owner->nrVars(); i += wi->work_step )
+                bforeach( const Neighbor &I, wi->bp_owner->nbV(i) )
+                    wi->bp_owner->calcNewMessage( i, I.iter );            
+        } else {
+            for( size_t i = wi->work_start; i < wi->bp_owner->nrVars(); i += wi->work_step )
+                bforeach( const Neighbor &I, wi->bp_owner->nbV(i) )
+                    wi->bp_owner->updateMessage( i, I.iter );            
+        }
+    }
+    pthread_mutex_unlock(&wi->result_mutex);
+   }
+
+   pthread_exit(NULL);
+
+}
+
+
 // BP::run does not check for NANs for performance reasons
 // Somehow NaNs do not often occur in BP...
 Real BP::run() {
@@ -265,6 +311,21 @@ Real BP::run() {
         cerr << endl;
 
     double tic = toc();
+
+#if THREADED
+    worker_info workers[props.threadcount];
+    if (props.threadcount > 1) {
+        for (int i = 0; i < props.threadcount; i++) {
+            workers[i].quit = false;
+            workers[i].bp_owner = this;
+            pthread_mutex_init(&workers[i].work_mutex, NULL);
+            pthread_mutex_init(&workers[i].result_mutex, NULL);
+            pthread_mutex_lock (&workers[i].work_mutex);
+            pthread_mutex_lock(&workers[i].result_mutex);
+            pthread_create (&workers[i].thread, NULL, bp_work_thread, &workers[i]);
+        }
+    }
+#endif
 
     // do several passes over the network until maximum number of iterations has
     // been reached or until the maximum belief difference is smaller than tolerance
@@ -297,6 +358,9 @@ Real BP::run() {
                 }
             }
         } else if( props.updates == Properties::UpdateType::PARALL ) {
+#if THREADED
+            if (props.threadcount < 2) {
+#endif            
             // Parallel updates
             for( size_t i = 0; i < nrVars(); ++i )
                 bforeach( const Neighbor &I, nbV(i) )
@@ -305,6 +369,33 @@ Real BP::run() {
             for( size_t i = 0; i < nrVars(); ++i )
                 bforeach( const Neighbor &I, nbV(i) )
                     updateMessage( i, I.iter );
+#if THREADED
+            } else {
+                //calculate the messages
+                for (int i=0; i < props.threadcount; i++) {
+                    workers[i].work_start = i;
+                    workers[i].work_step = props.threadcount;
+                    workers[i].work_calc_message = true;
+                    pthread_mutex_unlock(&workers[i].work_mutex);
+                }
+                //wait for workers
+                for (int i=0; i < props.threadcount; i++) {
+                    pthread_mutex_lock(&workers[i].result_mutex);
+                }
+                //do the updates
+                for (int i=0; i < props.threadcount; i++) {
+                    workers[i].work_start = i;
+                    workers[i].work_step = props.threadcount;
+                    workers[i].work_calc_message = false;
+                    pthread_mutex_unlock(&workers[i].work_mutex);
+                }
+                //wait for workers
+                for (int i=0; i < props.threadcount; i++) {
+                    pthread_mutex_lock(&workers[i].result_mutex);
+                }
+            }
+#endif            
+
         } else {
             // Sequential updates
             if( props.updates == Properties::UpdateType::SEQRND )
@@ -347,6 +438,20 @@ Real BP::run() {
                 cerr << "converged in " << _iters << " passes (" << toc() - tic << " seconds)." << endl;
         }
     }
+
+#if THREADED
+    if (props.threadcount > 1) {
+        for (int i = 0; i < props.threadcount; i++) {
+            workers[i].quit = true;
+        } 
+        for (int i=0; i < props.threadcount; i++) {
+            pthread_mutex_unlock(&workers[i].work_mutex);
+        }
+        for (int i = 0; i < props.threadcount; i++) {
+            pthread_join(workers[i].thread, NULL);
+        }
+    }
+#endif
 
     return maxDiff;
 }

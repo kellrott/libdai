@@ -132,6 +132,9 @@ class BP : public DAIAlgFG {
 
             /// Inference variant
             InfType inference;
+
+            /// Number of threads to use for PARALL updates
+            size_t threadcount;
         } props;
 
         /// Specifies whether the history of message updates should be recorded
@@ -257,8 +260,11 @@ class BP : public DAIAlgFG {
 
         /// Helper function for constructors
         virtual void construct();
+
+    friend void *bp_work_thread(void *worker_info_ptr);
 };
 
+void *bp_work_thread(void *worker_info_ptr);
 
 } // end of namespace dai
 
