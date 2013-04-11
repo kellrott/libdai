@@ -32,6 +32,8 @@ WITH_CBP=true
 WITH_DECMAP=true
 WITH_GLC=true
 
+THREADED=true
+
 # Build with debug info? (slower but safer)
 DEBUG=true
 
