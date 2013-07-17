@@ -1,4 +1,5 @@
 import os
+import platform
 
 AddOption('--prefix',
                   dest='prefix',
@@ -72,14 +73,27 @@ engine_targets = [
 "-DDAI_WITH_GLC"
 ]
 
-env = Environment(
-#	CPPFLAGS="-arch i386",
-#	LINKFLAGS="-arch i386",
-	CPPFLAGS=" ".join(engine_targets) + " -DTHREADED",
-	CPPPATH=[ os.path.join(Dir('#').abspath,'include'), '/opt/local/include', os.path.join(PREFIX, "include") ], 
-	LIBPATH = ['/opt/local/lib', os.path.join(PREFIX, "lib") ],
-	build_dir="build"
-)
+
+if len(platform.mac_ver()[0]):
+	#if this is for mac, use the '-install_name' flag to fix the shared library binding name
+	env = Environment(
+	#	CPPFLAGS="-arch i386",
+	#	LINKFLAGS="-arch i386",
+		LINKFLAGS="-install_name " + os.path.join(PREFIX, "lib/libdai.dylib"),
+		CPPFLAGS=" ".join(engine_targets) + " -DTHREADED" + " -g -O0",
+		CPPPATH=[ os.path.join(Dir('#').abspath,'include'), '/opt/local/include', os.path.join(PREFIX, "include") ], 
+		LIBPATH = ['/opt/local/lib', os.path.join(PREFIX, "lib") ],
+		build_dir="build"
+	)
+else:
+	env = Environment(
+	#	CPPFLAGS="-arch i386",
+	#	LINKFLAGS="-arch i386",
+		CPPFLAGS=" ".join(engine_targets) + " -DTHREADED" + " -g -O0",
+		CPPPATH=[ os.path.join(Dir('#').abspath,'include'), '/opt/local/include', os.path.join(PREFIX, "include") ], 
+		LIBPATH = ['/opt/local/lib', os.path.join(PREFIX, "lib") ],
+		build_dir="build"
+	)
 
 shared_lib = env.StaticLibrary("dai", SOURCE, LIBS=['gmpxx', 'gmp'])
 static_lib = env.SharedLibrary("dai", SOURCE, LIBS=['gmpxx', 'gmp'])
